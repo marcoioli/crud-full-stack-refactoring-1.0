@@ -13,16 +13,29 @@ require_once("./repositories/students.php");
 
 function handleGet($conn) 
 {
-    $input = json_decode(file_get_contents("php://input"), true);
-    
-    if (isset($input['id'])) 
+    if (isset($_GET['id'])) 
     {
-        $student = getStudentById($conn, $input['id']);
+        $student = getStudentById($conn, $_GET['id']);
         echo json_encode($student);
     } 
+    //2.0
+    else if (isset($_GET['page']) && isset($_GET['limit'])) 
+    {
+        $page = (int)$_GET['page'];
+        $limit = (int)$_GET['limit'];
+        $offset = ($page - 1) * $limit;
+
+        $students = getPaginatedStudents($conn, $limit, $offset);
+        $total = getTotalStudents($conn);
+
+        echo json_encode([
+            'students' => $students, // ya es array
+            'total' => $total        // ya es entero
+        ]);
+    }
     else
     {
-        $students = getAllStudents($conn);
+        $students = getAllStudents($conn); // ya es array
         echo json_encode($students);
     }
 }

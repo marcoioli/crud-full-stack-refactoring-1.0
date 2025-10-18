@@ -10,11 +10,18 @@
 
 import { studentsAPI } from '../api/studentsAPI.js';
 
+//2.0
+//For pagination:
+let currentPage = 1;
+let totalPages = 1;
+const limit = 5;
+
 document.addEventListener('DOMContentLoaded', () => 
 {
     loadStudents();
     setupFormHandler();
     setupCancelHandler();
+    setupPaginationControls();
 });
   
 function setupFormHandler()
@@ -53,6 +60,34 @@ function setupCancelHandler()
         document.getElementById('studentId').value = '';
     });
 }
+
+//2.0
+function setupPaginationControls() 
+{
+    document.getElementById('prevPage').addEventListener('click', () => 
+    {
+        if (currentPage > 1) 
+        {
+            currentPage--;
+            loadStudents();
+        }
+    });
+
+    document.getElementById('nextPage').addEventListener('click', () => 
+    {
+        if (currentPage < totalPages) 
+        {
+            currentPage++;
+            loadStudents();
+        }
+    });
+
+    document.getElementById('resultsPerPage').addEventListener('change', e => 
+    {
+        currentPage = 1;
+        loadStudents();
+    });
+}
   
 function getFormData()
 {
@@ -62,6 +97,24 @@ function getFormData()
         email: document.getElementById('email').value.trim(),
         age: parseInt(document.getElementById('age').value.trim(), 10)
     };
+}
+
+//2.0
+async function loadStudents()
+{
+    try 
+    {
+        const resPerPage = parseInt(document.getElementById('resultsPerPage').value, 10) || limit;
+        const data = await studentsAPI.fetchPaginated(currentPage, resPerPage);
+        console.log(data);
+        renderStudentTable(data.students);
+        totalPages = Math.ceil(data.total / resPerPage);
+        document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${totalPages}`;
+    } 
+    catch (err) 
+    {
+        console.error('Error cargando estudiantes:', err.message);
+    }
 }
   
 function clearForm()
@@ -74,8 +127,19 @@ async function loadStudents()
 {
     try 
     {
-        const students = await studentsAPI.fetchAll();
-        renderStudentTable(students);
+        const resPerPage = parseInt(document.getElementById('resultsPerPage').value, 10) || limit;
+        console.log('Cargando estudiantes con limit:', resPerPage, 'página:', currentPage);
+        
+        const data = await studentsAPI.fetchPaginated(currentPage, resPerPage);
+        console.log('Datos recibidos:', data);
+        
+        if (data && data.students) {
+            renderStudentTable(data.students);
+            totalPages = Math.ceil(data.total / resPerPage);
+            document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${totalPages}`;
+        } else {
+            console.error('Estructura de datos incorrecta:', data);
+        }
     } 
     catch (err) 
     {
