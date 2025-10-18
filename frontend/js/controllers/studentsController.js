@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () =>
     loadStudents();
     setupFormHandler();
     setupCancelHandler();
-    setupPaginationControls();
+    setupPaginationControls();//2.0
 });
   
 function setupFormHandler()
@@ -99,6 +99,12 @@ function getFormData()
     };
 }
 
+function clearForm()
+{
+    document.getElementById('studentForm').reset();
+    document.getElementById('studentId').value = '';
+}
+
 //2.0
 async function loadStudents()
 {
@@ -110,36 +116,6 @@ async function loadStudents()
         renderStudentTable(data.students);
         totalPages = Math.ceil(data.total / resPerPage);
         document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${totalPages}`;
-    } 
-    catch (err) 
-    {
-        console.error('Error cargando estudiantes:', err.message);
-    }
-}
-  
-function clearForm()
-{
-    document.getElementById('studentForm').reset();
-    document.getElementById('studentId').value = '';
-}
-  
-async function loadStudents()
-{
-    try 
-    {
-        const resPerPage = parseInt(document.getElementById('resultsPerPage').value, 10) || limit;
-        console.log('Cargando estudiantes con limit:', resPerPage, 'página:', currentPage);
-        
-        const data = await studentsAPI.fetchPaginated(currentPage, resPerPage);
-        console.log('Datos recibidos:', data);
-        
-        if (data && data.students) {
-            renderStudentTable(data.students);
-            totalPages = Math.ceil(data.total / resPerPage);
-            document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${totalPages}`;
-        } else {
-            console.error('Estructura de datos incorrecta:', data);
-        }
     } 
     catch (err) 
     {

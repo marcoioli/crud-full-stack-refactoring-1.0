@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () =>
     loadSubjects();
     setupSubjectFormHandler();
     setupCancelHandler();
+    setupPaginationControls();//2.0
 });
 
 function setupSubjectFormHandler() 
