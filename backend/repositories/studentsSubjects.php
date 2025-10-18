@@ -45,6 +45,8 @@ function getPaginatedSubjectsStudents($conn, $limit, $offset)
 {
     $stmt = $conn->prepare("SELECT 
                 ss.id, 
+                ss.student_id,            -- ✅ necesario para editar
+                ss.subject_id,            -- ✅ necesario para editar
                 s.fullname AS student_fullname, 
                 sub.name AS subject_name,
                 ss.approved
@@ -57,6 +59,7 @@ function getPaginatedSubjectsStudents($conn, $limit, $offset)
     $result = $stmt->get_result();
     return $result->fetch_all(MYSQLI_ASSOC);
 }
+
 
 //2.0
 function getTotalSubjectsStudents($conn) 
@@ -102,4 +105,24 @@ function removeStudentSubject($conn, $id)
 
     return ['deleted' => $stmt->affected_rows];
 }
+
+function getStudentSubjectById($conn, $id)
+{
+    $sql = "SELECT ss.id,
+                   ss.student_id,
+                   ss.subject_id,
+                   ss.approved,
+                   s.fullname AS student_fullname,
+                   sub.name AS subject_name
+            FROM students_subjects ss
+            JOIN students s ON ss.student_id = s.id
+            JOIN subjects sub ON ss.subject_id = sub.id
+            WHERE ss.id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_assoc();
+}
+
 ?>

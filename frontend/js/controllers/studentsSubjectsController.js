@@ -12,12 +12,17 @@ import { studentsAPI } from '../api/studentsAPI.js';
 import { subjectsAPI } from '../api/subjectsAPI.js';
 import { studentsSubjectsAPI } from '../api/studentsSubjectsAPI.js';
 
+let currentPage = 1;
+let totalPages = 1;
+const limit = 5;
+
 document.addEventListener('DOMContentLoaded', () => 
 {
+    loadStudentsSubjects();
     initSelects();
     setupFormHandler();
     setupCancelHandler();
-    loadRelations();
+    setupPaginationControls();//2.0
 });
 
 async function initSelects() 
@@ -56,7 +61,7 @@ function setupFormHandler()
 {
     const form = document.getElementById('relationForm');
     form.addEventListener('submit', async e => 
-    {
+    {   
         e.preventDefault();
 
         const relation = getFormData();
@@ -72,7 +77,7 @@ function setupFormHandler()
                 await studentsSubjectsAPI.create(relation);
             }
             clearForm();
-            loadRelations();
+            loadStudentsSubjects(); 
         } 
         catch (err) 
         {
@@ -87,6 +92,33 @@ function setupCancelHandler()
     cancelBtn.addEventListener('click', () => 
     {
         document.getElementById('relationId').value = '';
+    });
+}
+
+function setupPaginationControls() 
+{
+    document.getElementById('prevPage').addEventListener('click', () => 
+    {
+        if (currentPage > 1) 
+        {
+            currentPage--;
+            loadStudentsSubjects();
+        }
+    });
+
+    document.getElementById('nextPage').addEventListener('click', () => 
+    {
+        if (currentPage < totalPages) 
+        {
+            currentPage++;
+            loadStudentsSubjects();
+        }
+    });
+
+    document.getElementById('resultsPerPage').addEventListener('change', e => 
+    {
+        currentPage = 1;
+        loadStudentsSubjects();
     });
 }
 
@@ -106,39 +138,35 @@ function clearForm()
     document.getElementById('relationId').value = '';
 }
 
-async function loadRelations() 
+async function loadStudentsSubjects()
 {
     try 
     {
-        const relations = await studentsSubjectsAPI.fetchAll();
-        
-        /**
-         * DEBUG
-         */
-        //console.log(relations);
+        // Tomamos el valor actual del select de resultados por página
+        const resPerPage = parseInt(document.getElementById('resultsPerPage').value, 10) || limit;
 
-        /**
-         * En JavaScript: Cualquier string que no esté vacío ("") es considerado truthy.
-         * Entonces "0" (que es el valor que llega desde el backend) es truthy,
-         * ¡aunque conceptualmente sea falso! por eso: 
-         * Se necesita convertir ese string "0" a un número real 
-         * o asegurarte de comparar el valor exactamente. 
-         * Con el siguiente código se convierten todos los string approved a enteros.
-         */
-        relations.forEach(rel => 
-        {
-            rel.approved = Number(rel.approved);
-        });
-        
-        renderRelationsTable(relations);
+        // Llamamos a la API correspondiente al módulo de asignaciones
+        const data = await studentsSubjectsAPI.fetchPaginated(currentPage, resPerPage);
+
+        console.log(data); // para debug
+
+        // Renderizamos la tabla (de asignaciones, no de estudiantes)
+        renderStudentsSubjectsTable(data.studentsSubjects);
+
+        // Recalculamos las páginas totales
+        totalPages = Math.ceil(data.total / resPerPage);
+
+        // Actualizamos la info visual
+        document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${totalPages}`;
     } 
     catch (err) 
     {
-        console.error('Error cargando inscripciones:', err.message);
+        console.error('Error cargando asignaciones:', err.message);
     }
 }
 
-function renderRelationsTable(relations) 
+function renderStudentsSubjectsTable(relations)
+
 {
     const tbody = document.getElementById('relationTableBody');
     tbody.replaceChildren();
@@ -197,7 +225,7 @@ async function confirmDelete(id)
     try 
     {
         await studentsSubjectsAPI.remove(id);
-        loadRelations();
+        loadStudentsSubjects();
     } 
     catch (err) 
     {
