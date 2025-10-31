@@ -13,23 +13,50 @@ require_once("./repositories/studentsSubjects.php");
 
 function handleGet($conn) 
 {
-    $studentsSubjects = getAllSubjectsStudents($conn);
-    echo json_encode($studentsSubjects);
+    if (isset($_GET['id'])) 
+    {
+        // Obtener una sola relación por ID
+        $stmt = getSubjectsByStudent($conn, $_GET['id']);
+        echo json_encode($stmt);
+    } 
+
+        //2.0
+    else if (isset($_GET['page']) && isset($_GET['limit'])) 
+    {
+        $page = (int)$_GET['page'];
+        $limit = (int)$_GET['limit'];
+        $offset = ($page - 1) * $limit;
+
+        $studentsSubjects = getPaginatedSubjectsStudents($conn, $limit, $offset);
+        $total = getTotalSubjectsStudents($conn);
+
+        echo json_encode([
+            'studentsSubjects' => $studentsSubjects,
+            'total' => $total
+        ]);
+    }
+    else
+    {
+        $studentsSubjects = getAllSubjectsStudents($conn);
+        echo json_encode($studentsSubjects);
+    }  
+
 }
 
 function handlePost($conn) 
 {
     $input = json_decode(file_get_contents("php://input"), true);
-    
+
     $result = assignSubjectToStudent($conn, $input['student_id'], $input['subject_id'], $input['approved']);
     if ($result['inserted'] > 0) 
     {
-        echo json_encode(["message" => "Asignación realizada"]);
+        http_response_code(201);
+        echo json_encode(["message" => "Asignación realizada correctamente", "id" => $result['id']]);
     } 
     else 
     {
         http_response_code(500);
-        echo json_encode(["error" => "Error al asignar"]);
+        echo json_encode(["error" => "Error al asignar estudiante a materia"]);
     }
 }
 

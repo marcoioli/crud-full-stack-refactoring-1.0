@@ -10,11 +10,18 @@
 
 import { subjectsAPI } from '../api/subjectsAPI.js';
 
+//2.0
+//For pagination:
+let currentPage = 1;
+let totalPages = 1;
+const limit = 5;
+
 document.addEventListener('DOMContentLoaded', () => 
 {
     loadSubjects();
     setupSubjectFormHandler();
     setupCancelHandler();
+    setupPaginationControls();//2.0
 });
 
 function setupSubjectFormHandler() 
@@ -60,14 +67,47 @@ function setupCancelHandler()
     });
 }
 
+function setupPaginationControls() 
+{
+    document.getElementById('prevPage').addEventListener('click', () => 
+    {
+        if (currentPage > 1) 
+        {
+            currentPage--;
+            loadSubjects();
+        }
+    });
+
+    document.getElementById('nextPage').addEventListener('click', () => 
+    {
+        if (currentPage < totalPages) 
+        {
+            currentPage++;
+            loadSubjects();
+        }
+    });
+
+    document.getElementById('resultsPerPage').addEventListener('change', e => 
+    {
+        currentPage = 1;
+        loadSubjects();
+    });
+}
+
+// Agrega debug en subjectsController.js
+//2.0
 async function loadSubjects()
 {
-    try
+    try 
     {
-        const subjects = await subjectsAPI.fetchAll();
-        renderSubjectTable(subjects);
-    }
-    catch (err)
+        const resPerPage = parseInt(document.getElementById('resultsPerPage').value, 10) || limit;
+        const data = await subjectsAPI.fetchPaginated(currentPage, resPerPage);
+        console.log(data);
+        renderSubjectTable(data.subjects);
+        totalPages = Math.ceil(data.total / resPerPage);
+        document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${totalPages}`;
+    } 
+    catch (err) 
     {
         console.error('Error cargando materias:', err.message);
     }

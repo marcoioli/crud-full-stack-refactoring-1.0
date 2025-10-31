@@ -19,6 +19,8 @@ $conn = new mysqli($host, $user, $password, $database);
 if ($conn->connect_error) 
 {
     http_response_code(500);
-    die(json_encode(["error" => "Database connection failed"]));
+    // Usamos header() para decirle explícitamente al navegador que esto es JSON
+    header('Content-Type: application/json'); 
+    die(json_encode(["error" => "Error de conexión a la base de datos: " . $conn->connect_error]));
 }
 ?>

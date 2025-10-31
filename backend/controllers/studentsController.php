@@ -13,16 +13,29 @@ require_once("./repositories/students.php");
 
 function handleGet($conn) 
 {
-    $input = json_decode(file_get_contents("php://input"), true);
-    
-    if (isset($input['id'])) 
+    if (isset($_GET['id'])) 
     {
-        $student = getStudentById($conn, $input['id']);
+        $student = getStudentById($conn, $_GET['id']);
         echo json_encode($student);
     } 
+    //2.0
+    else if (isset($_GET['page']) && isset($_GET['limit'])) 
+    {
+        $page = (int)$_GET['page'];
+        $limit = (int)$_GET['limit'];
+        $offset = ($page - 1) * $limit;
+
+        $students = getPaginatedStudents($conn, $limit, $offset);
+        $total = getTotalStudents($conn);
+
+        echo json_encode([
+            'students' => $students, // ya es array
+            'total' => $total        // ya es entero
+        ]);
+    }
     else
     {
-        $students = getAllStudents($conn);
+        $students = getAllStudents($conn); // ya es array
         echo json_encode($students);
     }
 }
@@ -31,16 +44,28 @@ function handlePost($conn)
 {
     $input = json_decode(file_get_contents("php://input"), true);
 
+    // --- INICIO DE LA MODIFICACIÓN ---
+    // 1. Validación de datos de entrada
+    if (!isset($input['fullname']) || !isset($input['email']) || !isset($input['age']) || empty(trim($input['fullname']))) {
+        http_response_code(400); // 400 Bad Request: significa que la petición del cliente es incorrecta
+        echo json_encode(["error" => "Datos incompletos o inválidos. Se requiere nombre completo, email y edad."]);
+        return;
+    }
+
     $result = createStudent($conn, $input['fullname'], $input['email'], $input['age']);
     if ($result['inserted'] > 0) 
     {
-        echo json_encode(["message" => "Estudiante agregado correctamente"]);
+        // 2. Usar el código HTTP 201 (Created) que es el estándar para una creación exitosa
+        http_response_code(201); 
+        echo json_encode(["message" => "Estudiante agregado correctamente", "id" => $result['id']]);
     } 
     else 
     {
-        http_response_code(500);
-        echo json_encode(["error" => "No se pudo agregar"]);
+        http_response_code(500); // 500 Internal Server Error
+        // 3. Mensaje de error más descriptivo
+        echo json_encode(["error" => "No se pudo agregar el estudiante. Es posible que el email ya exista."]);
     }
+    // --- FIN DE LA MODIFICACIÓN ---
 }
 
 function handlePut($conn) 
