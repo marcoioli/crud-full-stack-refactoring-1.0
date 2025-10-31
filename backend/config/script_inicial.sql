@@ -11,7 +11,7 @@ CREATE USER 'student'@'localhost' IDENTIFIED BY '12345';
 GRANT ALL PRIVILEGES ON students.* TO 'student'@'localhost';
 
 /*Aplicar los cambios en los permisos​*/
-FLUSH PRIVILEGES;​
+FLUSH PRIVILEGES;
 /******************************************************************************/
 
 /*************A PARTIR DE ACÁ SE PUEDE HACER COMO ROOT 
