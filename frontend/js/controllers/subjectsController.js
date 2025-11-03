@@ -16,6 +16,8 @@ let currentPage = 1;
 let totalPages = 1;
 const limit = 5;
 
+let allSubjectsCache = [];
+
 document.addEventListener('DOMContentLoaded', () => 
 {
     loadSubjects();
@@ -24,16 +26,45 @@ document.addEventListener('DOMContentLoaded', () =>
     setupPaginationControls();//2.0
 });
 
+
+async function cacheAllSubjects() {
+    try {
+        allSubjectsCache = await subjectsAPI.fetchAll();
+    } catch (err) {
+        console.error("Error cargando caché de materias para validación:", err.message);
+    }
+}
+
 function setupSubjectFormHandler() 
 {
   const form = document.getElementById('subjectForm');
   form.addEventListener('submit', async e => 
   {
         e.preventDefault();
+
+        const subjectId = document.getElementById('subjectId').value.trim();
+        const subjectName = document.getElementById('name').value.trim();
+
+        if (!subjectName) {
+            alert("El nombre de la materia no puede estar vacío.");
+            return;
+        }
+
+        
+        const isDuplicate = allSubjectsCache.some(
+            s => s.name.toLowerCase() === subjectName.toLowerCase() && s.id.toString() !== subjectId
+        );
+
+        if (isDuplicate) {
+            alert("Error: Ya existe una materia con ese nombre.");
+            return; // Detiene el envío
+        }
+        
+
         const subject = 
         {
-            id: document.getElementById('subjectId').value.trim(),
-            name: document.getElementById('name').value.trim()
+            id: subjectId,
+            name: subjectName
         };
 
         try 
@@ -50,10 +81,16 @@ function setupSubjectFormHandler()
             form.reset();
             document.getElementById('subjectId').value = '';
             loadSubjects();
+            cacheAllSubjects(); // Actualizar la caché
         }
         catch (err)
         {
-            console.error(err.message);
+            if (err.message.includes("409")) {
+                alert("Error: La materia con ese nombre ya existe (detectado por el servidor).");
+            } else {
+                console.error(err.message);
+                alert("Error al guardar la materia.");
+            }
         }
   });
 }

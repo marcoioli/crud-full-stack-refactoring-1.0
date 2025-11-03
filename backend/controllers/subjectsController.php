@@ -46,6 +46,21 @@ function handlePost($conn)
 {
     $input = json_decode(file_get_contents("php://input"), true);
 
+    if (!isset($input['name']) || empty(trim($input['name'])))
+    {
+        http_response_code(400); // Bad Request
+        echo json_encode(["error" => "El nombre de la materia es obligatorio."]);
+        return;
+    }
+
+    $existingSubject = getSubjectByName($conn, $input['name']);
+    if ($existingSubject) 
+    {
+        http_response_code(409);
+        echo json_encode(["error" => "La materia con ese nombre ya existe."]);
+        return;
+    }
+
     $result = createSubject($conn, $input['name']);
     if ($result['inserted'] > 0) 
     {
@@ -61,6 +76,23 @@ function handlePost($conn)
 function handlePut($conn) 
 {
     $input = json_decode(file_get_contents("php://input"), true);
+
+    if (!isset($input['name']) || empty(trim($input['name'])))
+    {
+        http_response_code(400); // Bad Request
+        echo json_encode(["error" => "El nombre de la materia es obligatorio."]);
+        return;
+    }
+    
+    
+    $existingSubject = getSubjectByName($conn, $input['name']);
+    if ($existingSubject && $existingSubject['id'] != $input['id']) 
+    {
+        
+        http_response_code(409);
+        echo json_encode(["error" => "Ya existe otra materia con ese nombre."]);
+        return;
+    }
 
     $result = updateSubject($conn, $input['id'], $input['name']);
     if ($result['updated'] > 0) 
