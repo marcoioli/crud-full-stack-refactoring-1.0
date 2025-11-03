@@ -45,10 +45,6 @@ function setupSubjectFormHandler()
         const subjectId = document.getElementById('subjectId').value.trim();
         const subjectName = document.getElementById('name').value.trim();
 
-        if (!subjectName) {
-            alert("El nombre de la materia no puede estar vacío.");
-            return;
-        }
 
         
         const isDuplicate = allSubjectsCache.some(
