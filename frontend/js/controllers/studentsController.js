@@ -16,12 +16,19 @@ let currentPage = 1;
 let totalPages = 1;
 const limit = 5;
 
+let errorModal; 
+
 document.addEventListener('DOMContentLoaded', () => 
 {
+
+    errorModal = document.getElementById('errorModal'); //referencia a error modal
+
     loadStudents();
     setupFormHandler();
     setupCancelHandler();
     setupPaginationControls();//2.0
+
+    setupModalControls(); //botones del modal
 });
   
 function setupFormHandler()
@@ -120,6 +127,7 @@ async function loadStudents()
     catch (err) 
     {
         console.error('Error cargando estudiantes:', err.message);
+        showErrorModal(`Error fatal al cargar estudiantes: ${err.message}. Revise la consola (F12) y el backend.`);
     }
 }
   
@@ -160,7 +168,7 @@ function createActionsCell(student)
     const deleteBtn = document.createElement('button');
     deleteBtn.textContent = 'Borrar';
     deleteBtn.className = 'w3-button w3-red w3-small w3-margin-left';
-    deleteBtn.addEventListener('click', () => confirmDelete(student.id));
+    deleteBtn.addEventListener('click', () => confirmDelete(student)); //ahora recibe el student completo, para saber el count de asignaciones
   
     td.appendChild(editBtn);
     td.appendChild(deleteBtn);
@@ -174,19 +182,55 @@ function fillForm(student)
     document.getElementById('email').value = student.email;
     document.getElementById('age').value = student.age;
 }
-  
-async function confirmDelete(id) 
+
+//cierre
+function setupModalControls()
 {
-    if (!confirm('¿Estás seguro que deseas borrar este estudiante?')) return;
+    const closeModalBtn = document.getElementById('closeErrorModalBtn');
+    const closeModalCross = document.getElementById('closeErrorModalCross');
+    
+    closeModalBtn.addEventListener('click', () => hideErrorModal());
+    closeModalCross.addEventListener('click', () => hideErrorModal());
+}
+
+//recibe un mensaje y muestra el modal con ese mensaje
+function showErrorModal(message)
+{
+    const modalMessage = document.getElementById('errorModalMessage');
+    modalMessage.textContent = message;
+    errorModal.style.display = 'block';
+}
+
+function hideErrorModal()
+{
+    errorModal.style.display = 'none';
+}
+
+//recibe todo el student y lo elimina si no tiene materias
+async function confirmDelete(student) 
+{
+    // tengo que verificar devuelta en el front
+    if (student.subject_count > 0) 
+    {
+        const message = `No se puede eliminar a "${student.fullname}" porque tiene ${student.subject_count} materia(s) asignada(s).`;
+        showErrorModal(message);
+        return; 
+    }
   
+    // confirmamos que se quiere borrar
+    if (!confirm(`¿Estás seguro que deseas borrar a "${student.fullname}"? Esta acción no se puede deshacer.`)) return;
+  
+    // 3. si se confrima, eliminamos
     try 
     {
-        await studentsAPI.remove(id);
+        await studentsAPI.remove(student.id);
         loadStudents();
     } 
     catch (err) 
     {
+        //error de servidor (por las duadas)
         console.error('Error al borrar:', err.message);
+        showErrorModal(`Error del servidor al intentar borrar: ${err.message}`);
     }
 }
   

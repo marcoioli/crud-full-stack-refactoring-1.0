@@ -18,3 +18,71 @@ form input, form button {
     width:auto;
     display:inline-block;
 }
+
+.w3-modal {
+    padding-top: 100px; /* centrado*/
+}
+
+/* contenedor */
+.custom-error-modal {
+    width: 500px; 
+    margin: auto;
+    border-radius: 8px; 
+    box-shadow: 0 4px 10px 0 rgba(0,0,0,0.2), 0 4px 20px 0 rgba(0,0,0,0.19);
+    font-family: Arial, sans-serif;
+}
+
+/* header */
+.custom-error-header {
+    background-color: #d9534f; 
+    color: #ffffff;
+    border-radius: 8px 8px 0 0;
+    padding: 16px 24px;
+}
+.custom-error-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600; 
+}
+
+/* mensaje */
+.custom-error-body {
+    padding: 24px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+    background-color: #fff;
+}
+.custom-error-body p {
+    margin: 0;
+}
+
+/* pie */
+.custom-error-footer {
+    padding: 16px 24px;
+    background-color: #f9f9f9;
+    border-top: 1px solid #eee;
+    border-radius: 0 0 8px 8px;
+}
+
+/* boton x*/
+.custom-error-close-btn {
+    background-color: #d9534f;
+    color: #ffffff;
+    font-weight: bold;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 20px;
+    transition: background-color 0.3s;
+}
+/* se sobreescribe lo de w3 */
+.custom-error-close-btn:hover {
+    background-color: #c9302c !important; 
+    color: #fff !important;
+}
+
+/* x de la esquina */
+span.w3-display-topright {
+    padding: 8px 16px !important;
+    transition: color 0.3s;
+}

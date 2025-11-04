@@ -11,16 +11,34 @@
 
 function getAllStudents($conn) 
 {
-    $sql = "SELECT * FROM students";
+    // devuelve todos los datos, y la cantidad de materias
+    $sql = "SELECT 
+                s.*, 
+                COUNT(ss.student_id) AS subject_count
+            FROM 
+                students s
+            LEFT JOIN 
+                students_subjects ss ON s.id = ss.student_id
+            GROUP BY 
+                s.id";
 
-    //MYSQLI_ASSOC devuelve un array ya listo para convertir en JSON:
     return $conn->query($sql)->fetch_all(MYSQLI_ASSOC);
 }
 
 //2.0
 function getPaginatedStudents($conn, $limit, $offset) 
 {
-    $stmt = $conn->prepare("SELECT * FROM students LIMIT ? OFFSET ?");
+    // Modificamos la consulta paginada para que también cuente las asignaciones
+    $stmt = $conn->prepare("SELECT 
+                                s.*, 
+                                COUNT(ss.student_id) AS subject_count
+                           FROM 
+                                students s
+                           LEFT JOIN 
+                                students_subjects ss ON s.id = ss.student_id
+                           GROUP BY 
+                                s.id
+                           LIMIT ? OFFSET ?");
     $stmt->bind_param("ii", $limit, $offset);
     $stmt->execute();
     $result = $stmt->get_result();
