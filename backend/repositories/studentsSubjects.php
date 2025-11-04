@@ -23,7 +23,6 @@ function assignSubjectToStudent($conn, $student_id, $subject_id, $approved)
     ];
 }
 
-
 //Query escrita sin ALIAS resumidos (a mi me gusta más):
 function getAllSubjectsStudents($conn) 
 {
@@ -45,8 +44,8 @@ function getPaginatedSubjectsStudents($conn, $limit, $offset)
 {
     $stmt = $conn->prepare("SELECT 
                 ss.id, 
-                ss.student_id,            -- ✅ necesario para editar
-                ss.subject_id,            -- ✅ necesario para editar
+                ss.student_id,           
+                ss.subject_id,            
                 s.fullname AS student_fullname, 
                 sub.name AS subject_name,
                 ss.approved
@@ -124,5 +123,16 @@ function getStudentSubjectById($conn, $id)
     $result = $stmt->get_result();
     return $result->fetch_assoc();
 }
+
+function countSubjectsByStudentId($conn, $student_id) 
+{
+    $sql = "SELECT COUNT(*) AS total FROM students_subjects WHERE student_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $student_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_assoc()['total'];
+}
+//devuelve la cantidad de materias que tiene el estudiante
 
 ?>
