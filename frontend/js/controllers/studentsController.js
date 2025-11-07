@@ -17,6 +17,7 @@ let totalPages = 1;
 const limit = 5;
 
 let errorModal; 
+let studentsCache = [];
 
 document.addEventListener('DOMContentLoaded', () => 
 {
@@ -38,6 +39,18 @@ function setupFormHandler()
     {
         e.preventDefault();
         const student = getFormData();
+
+        const studentEmail = student.email.toLowerCase();
+
+        const isDuplicateEmail = studentsCache.some(
+            s => s.email.toLowerCase() === studentEmail && 
+                 s.id.toString() !== student.id 
+        );
+
+        if (isDuplicateEmail) {
+            showErrorModal("El email ingresado ya existe para otro estudiante. Por favor, utilice uno diferente.");
+            return;
+        }
     
         try 
         {
@@ -55,6 +68,11 @@ function setupFormHandler()
         catch (err)
         {
             console.error(err.message);
+            if (err.message.includes("409")) {
+                showErrorModal("Error: El email que intentas usar ya está registrado.");
+            } else {
+                 showErrorModal(`Error del servidor al guardar: ${err.message}. Revise la consola.`);
+            }
         }
     });
 }
@@ -117,6 +135,7 @@ async function loadStudents()
 {
     try 
     {
+        studentsCache = await studentsAPI.fetchAll();
         const resPerPage = parseInt(document.getElementById('resultsPerPage').value, 10) || limit;
         const data = await studentsAPI.fetchPaginated(currentPage, resPerPage);
         console.log(data);

@@ -53,7 +53,12 @@ function handlePost($conn)
         echo json_encode(["error" => "Datos incompletos o inválidos. Se requiere nombre completo, email y edad."]);
         return;
     }
-
+    $existingStudent = getStudentByEmail($conn, $input['email']);
+    if ($existingStudent) {
+        http_response_code(409); // 409 Conflict
+        echo json_encode(["error" => "El email proporcionado ya está registrado en el sistema."]);
+        return;
+    }
     $result = createStudent($conn, $input['fullname'], $input['email'], $input['age']);
     if ($result['inserted'] > 0) 
     {
@@ -71,6 +76,13 @@ function handlePost($conn)
 function handlePut($conn) 
 {
     $input = json_decode(file_get_contents("php://input"), true);
+    $studentId = $input['id'];
+    $existingStudent = getStudentByEmail($conn, $input['email'], $studentId);
+    if ($existingStudent) {
+        http_response_code(409); // 409 Conflict
+        echo json_encode(["error" => "El email proporcionado ya está registrado por otro estudiante."]);
+        return;
+    }
 
     $result = updateStudent($conn, $input['id'], $input['fullname'], $input['email'], $input['age']);
     if ($result['updated'] > 0) 
