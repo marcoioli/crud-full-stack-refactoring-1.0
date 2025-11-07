@@ -70,6 +70,14 @@ function handlePut($conn)
 {
     $input = json_decode(file_get_contents("php://input"), true);
 
+    $existingSubject = getSubjectByName($conn, $input['name']);
+    if ($existingSubject) 
+    {
+        http_response_code(409);
+        echo json_encode(["error" => "La materia con ese nombre ya existe."]);
+        return;
+    }
+
     $result = updateSubject($conn, $input['id'], $input['name']);
     if ($result['updated'] > 0) 
     {
