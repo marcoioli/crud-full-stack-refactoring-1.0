@@ -20,47 +20,44 @@ const limit = 5;
 // Caché para guardar todas las materias y validar duplicados en el frontend
 let allSubjectsCache = [];
 
-// Elementos del Modal de W3.CSS
-let validationModal, modalTitle, modalMessage, closeModalBtn, closeModalFooterBtn;
+// Referencia al Modal (Actualizado)
+let errorModal;
 // --- FIN DE LA VALIDACIÓN 2 ---
 
 
 document.addEventListener('DOMContentLoaded', () => 
 {
-    // --- INICIO DE LA VALIDACIÓN 2 (Referencias del Modal) ---
-    validationModal = document.getElementById('validationModal');
-    modalTitle = document.getElementById('modalTitle');
-    modalMessage = document.getElementById('modalMessage');
-    closeModalBtn = document.getElementById('closeModalBtn'); // 'X' en la cabecera
-    closeModalFooterBtn = document.getElementById('closeModalFooterBtn'); // Botón en el pie
-
-    // Eventos para cerrar el modal
-    closeModalBtn.addEventListener('click', hideModal);
-    closeModalFooterBtn.addEventListener('click', hideModal);
-    // --- FIN DE LA VALIDACIÓN 2 (Referencias del Modal) ---
+    // Referencia al modal actualizado
+    errorModal = document.getElementById('errorModal');
 
     loadSubjects();
-    cacheAllSubjects(); // --- VALIDACIÓN 2 --- Carga la caché completa
+    cacheAllSubjects(); 
     setupSubjectFormHandler();
     setupCancelHandler();
     setupPaginationControls();//2.0
+    
+    // Configurar botones del modal
+    setupModalControls();
 });
 
-// --- INICIO DE LA VALIDACIÓN 2 (Funciones del Modal) ---
-/**
- * Muestra el modal de validación con un mensaje y título.
- */
-function showModal(message, title = 'Error de Validación') {
-    modalTitle.textContent = title;
-    modalMessage.textContent = message;
-    validationModal.style.display = 'block';
+// --- FUNCIONES DEL MODAL (Igual a studentsController) ---
+function setupModalControls()
+{
+    const closeModalBtn = document.getElementById('closeErrorModalBtn');
+    const closeModalCross = document.getElementById('closeErrorModalCross');
+    
+    closeModalBtn.addEventListener('click', () => hideErrorModal());
+    closeModalCross.addEventListener('click', () => hideErrorModal());
 }
 
-/**
- * Oculta el modal de validación.
- */
-function hideModal() {
-    validationModal.style.display = 'none';
+function showErrorModal(message) {
+    const modalMessage = document.getElementById('errorModalMessage');
+    modalMessage.textContent = message;
+    errorModal.style.display = 'block';
+}
+
+function hideErrorModal() {
+    errorModal.style.display = 'none';
 }
 
 /**
@@ -73,7 +70,7 @@ async function cacheAllSubjects() {
         console.error("Error cargando caché de materias para validación:", err.message);
     }
 }
-// --- FIN DE LA VALIDACIÓN 2 (Funciones del Modal) ---
+// --- FIN FUNCIONES DEL MODAL ---
 
   
 function setupSubjectFormHandler()
@@ -89,7 +86,7 @@ function setupSubjectFormHandler()
 
         // 1. Validación de campo vacío
         if (!subjectName) {
-            showModal("El nombre de la materia no puede estar vacío.");
+            showErrorModal("El nombre de la materia no puede estar vacío.");
             return;
         }
 
@@ -99,7 +96,7 @@ function setupSubjectFormHandler()
         );
 
         if (isDuplicate) {
-            showModal("Error: Ya existe una materia con ese nombre.");
+            showErrorModal("Error: Ya existe una materia con ese nombre.");
             return; // Detiene el envío
         }
         // --- FIN DE LA VALIDACIÓN 2 (Lógica Frontend) ---
@@ -122,16 +119,16 @@ function setupSubjectFormHandler()
             }
             clearForm();
             loadSubjects();
-            cacheAllSubjects(); // --- VALIDACIÓN 2 --- Actualizar la caché
+            cacheAllSubjects(); // Actualizar la caché
         }
         catch (err)
         {
             // --- INICIO DE LA VALIDACIÓN 2 (Manejo de Error Backend) ---
             if (err.message.includes("409")) {
-                showModal("Error: La materia con ese nombre ya existe (detectado por el servidor).");
+                showErrorModal("Error: La materia con ese nombre ya existe (detectado por el servidor).");
             } else {
                 console.error(err.message);
-                showModal("Error al guardar la materia. Detalles: " + err.message);
+                showErrorModal("Error al guardar la materia. Detalles: " + err.message);
             }
             // --- FIN DE LA VALIDACIÓN 2 (Manejo de Error Backend) ---
         }
@@ -204,6 +201,7 @@ async function loadSubjects()
     catch (err) 
     {
         console.error('Error cargando materias:', err.message);
+        showErrorModal('Error al cargar las materias: ' + err.message);
     }
 }
   
@@ -261,21 +259,17 @@ function fillForm(subject)
   
 async function confirmDeleteSubject(id)
 {
-    // 'confirm' es una acción diferente a 'alert'. 
-    // Es mejor mantener el 'confirm' nativo para una pregunta de Sí/No.
-    // Solo manejaremos el 'alert' de error.
     if (!confirm('¿Seguro que deseas borrar esta materia?')) return;
 
     try
     {
         await subjectsAPI.remove(id);
         loadSubjects();
-        cacheAllSubjects(); // --- VALIDACIÓN 2 --- Actualizar la caché
+        cacheAllSubjects(); // Actualizar la caché
     }
     catch (err)
     {
         console.error('Error al borrar materia:', err.message);
-        // --- VALIDACIÓN 2 --- Mostrar error en el modal
-        showModal('Error al borrar la materia. Es posible que esté asignada a un estudiante.');
+        showErrorModal('Error al borrar la materia. Es posible que esté asignada a un estudiante.');
     }
 }
