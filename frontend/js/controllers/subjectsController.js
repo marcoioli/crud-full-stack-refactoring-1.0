@@ -270,6 +270,14 @@ async function confirmDeleteSubject(id)
     catch (err)
     {
         console.error('Error al borrar materia:', err.message);
-        showErrorModal('Error al borrar la materia. Es posible que esté asignada a un estudiante.');
+       // El error 409 lo enviamos desde el Backend si hay asignaciones.
+        
+        if (err.message.includes("409")) {
+            // Si envió 409, muestra el mensaje de conflicto de asignación.
+            showModal('Error: No se puede eliminar la materia. Está vinculada a una o más asignaciones de estudiantes.', 'Conflicto de Borrado');
+        } else {
+            // Para cualquier otro error (500, etc.)
+            showModal('Error al borrar la materia. Detalles: ' + err.message, 'Error de Operación');
+        }
     }
 }
