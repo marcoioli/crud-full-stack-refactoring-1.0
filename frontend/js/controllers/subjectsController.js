@@ -259,25 +259,28 @@ function fillForm(subject)
   
 async function confirmDeleteSubject(id)
 {
+    // 'confirm' es una acción diferente a 'alert'. 
+    // Es mejor mantener el 'confirm' nativo para una pregunta de Sí/No.
+    // Solo manejaremos el 'alert' de error.
     if (!confirm('¿Seguro que deseas borrar esta materia?')) return;
 
     try
     {
         await subjectsAPI.remove(id);
         loadSubjects();
-        cacheAllSubjects(); // Actualizar la caché
+        cacheAllSubjects(); // --- VALIDACIÓN 2 --- Actualizar la caché
     }
     catch (err)
     {
         console.error('Error al borrar materia:', err.message);
        // El error 409 lo enviamos desde el Backend si hay asignaciones.
-        
-        if (err.message.includes("409")) {
+ 
+        if (err.message.includes("409")) {
             // Si envió 409, muestra el mensaje de conflicto de asignación.
-            showModal('Error: No se puede eliminar la materia. Está vinculada a una o más asignaciones de estudiantes.', 'Conflicto de Borrado');
-        } else {
+            showModal('Error: No se puede eliminar la materia. Está vinculada a una o más asignaciones de estudiantes.', 'Conflicto de Borrado'); 
+        } else {
             // Para cualquier otro error (500, etc.)
-            showModal('Error al borrar la materia. Detalles: ' + err.message, 'Error de Operación');
-        }
+            showModal('Error al borrar la materia. Detalles: ' + err.message, 'Error de Operación');
+        }
     }
 }
