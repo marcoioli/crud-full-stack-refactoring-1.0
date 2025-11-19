@@ -101,18 +101,11 @@ function deleteStudent($conn, $id)
     //Se retorna fila afectadas para validar en controlador
     return ['deleted' => $stmt->affected_rows];
 }
-function getStudentByEmail($conn, $email, $excludeId = null) 
+function getStudentByEmail($conn, $email) 
 {
     $sql = "SELECT id FROM students WHERE email = ?";
     $params = [$email];
     $types = "s";
-
-    if ($excludeId !== null) 
-    {
-        $sql .= " AND id != ?";
-        $params[] = $excludeId;
-        $types .= "i";
-    }
 
     $stmt = $conn->prepare($sql);
     
