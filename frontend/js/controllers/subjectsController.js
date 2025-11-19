@@ -16,13 +16,13 @@ let currentPage = 1;
 let totalPages = 1;
 const limit = 5;
 
-// --- INICIO DE LA VALIDACIÓN 2 ---
+
 // Caché para guardar todas las materias y validar duplicados en el frontend
 let allSubjectsCache = [];
 
-// Referencia al Modal (Actualizado)
+// Referencia al Modal 
 let errorModal;
-// --- FIN DE LA VALIDACIÓN 2 ---
+
 
 
 document.addEventListener('DOMContentLoaded', () => 
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () =>
     setupModalControls();
 });
 
-// --- FUNCIONES DEL MODAL (Igual a studentsController) ---
+
 function setupModalControls()
 {
     const closeModalBtn = document.getElementById('closeErrorModalBtn');
@@ -60,9 +60,9 @@ function hideErrorModal() {
     errorModal.style.display = 'none';
 }
 
-/**
- * Obtiene todas las materias y las guarda en la caché para validación.
- */
+
+ //Obtiene todas las materias y las guarda en la caché para validación.
+
 async function cacheAllSubjects() {
     try {
         allSubjectsCache = await subjectsAPI.fetchAll();
@@ -70,7 +70,7 @@ async function cacheAllSubjects() {
         console.error("Error cargando caché de materias para validación:", err.message);
     }
 }
-// --- FIN FUNCIONES DEL MODAL ---
+
 
   
 function setupSubjectFormHandler()
@@ -80,7 +80,7 @@ function setupSubjectFormHandler()
     {
         e.preventDefault();
 
-        // --- INICIO DE LA VALIDACIÓN 2 (Lógica Frontend) ---
+        
         const subjectId = document.getElementById('subjectId').value.trim();
         const subjectName = document.getElementById('name').value.trim();
 
@@ -99,7 +99,7 @@ function setupSubjectFormHandler()
             showErrorModal("Error: Ya existe una materia con ese nombre.");
             return; // Detiene el envío
         }
-        // --- FIN DE LA VALIDACIÓN 2 (Lógica Frontend) ---
+        
 
         const subject = 
         {
@@ -123,14 +123,14 @@ function setupSubjectFormHandler()
         }
         catch (err)
         {
-            // --- INICIO DE LA VALIDACIÓN 2 (Manejo de Error Backend) ---
+           
             if (err.message.includes("409")) {
                 showErrorModal("Error: La materia con ese nombre ya existe (detectado por el servidor).");
             } else {
                 console.error(err.message);
                 showErrorModal("Error al guardar la materia. Detalles: " + err.message);
             }
-            // --- FIN DE LA VALIDACIÓN 2 (Manejo de Error Backend) ---
+            
         }
     });
 }
@@ -277,10 +277,10 @@ async function confirmDeleteSubject(id)
  
         if (err.message.includes("409")) {
             // Si envió 409, muestra el mensaje de conflicto de asignación.
-            showModal('Error: No se puede eliminar la materia. Está vinculada a una o más asignaciones de estudiantes.', 'Conflicto de Borrado'); 
+            showErrorModal('Error: No se puede eliminar la materia. Está vinculada a una o más asignaciones de estudiantes.', 'Conflicto de Borrado'); 
         } else {
             // Para cualquier otro error (500, etc.)
-            showModal('Error al borrar la materia. Detalles: ' + err.message, 'Error de Operación');
+            showErrorModal('Error al borrar la materia. Detalles: ' + err.message, 'Error de Operación');
         }
     }
 }
