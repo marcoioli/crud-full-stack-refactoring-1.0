@@ -107,13 +107,6 @@ function getStudentByEmail($conn, $email, $excludeId = null)
     $params = [$email];
     $types = "s";
 
-    if ($excludeId !== null) 
-    {
-        $sql .= " AND id != ?";
-        $params[] = $excludeId;
-        $types .= "i";
-    }
-
     $stmt = $conn->prepare($sql);
     
     $stmt->bind_param($types, ...$params);
